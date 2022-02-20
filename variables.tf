@@ -1,0 +1,37 @@
+variable "project_name" {
+  description = "The name of the project"
+  type        = string
+  default =  "codepipline"
+}
+
+variable "provider_type" {
+  description = "The provider type"
+  type        = string
+  default = "GitHub"
+}
+
+variable "full_repository_id" {
+  description = "The full repository id"
+  type        = string
+  default = ""
+}
+
+variable "branch_name" {
+  description = "The branch name"
+  type        = string
+  default = "develop"
+}
+
+variable "build_environment_variables" {
+  description = "The build environment variables"
+  type        = any
+  default = []
+}
+
+variable "tags" {
+  description = "The tags to apply to the project"
+  type        = map(string)
+  default = {
+    "CodePipeline" = "true"
+  }
+}
