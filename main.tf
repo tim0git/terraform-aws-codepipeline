@@ -11,7 +11,7 @@ module "codestar_connection" {
 
 module "code_build" {
   source  = "tim0git/codebuild/aws"
-  version = "1.0.0"
+  version = "1.0.1"
 
   project_name = var.project_name
 
