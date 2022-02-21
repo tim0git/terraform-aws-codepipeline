@@ -1,5 +1,6 @@
 module "codestar_connection" {
   source  = "tim0git/codestar-connection/aws"
+  version = "1.1.1"
 
   name = var.project_name
 
@@ -10,6 +11,7 @@ module "codestar_connection" {
 
 module "code_build" {
   source  = "tim0git/codebuild/aws"
+  version = "1.0.0"
 
   project_name = var.project_name
 
