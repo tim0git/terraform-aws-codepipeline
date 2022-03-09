@@ -1,5 +1,6 @@
 data "aws_iam_policy_document" "pipline_notifications" {
   count = var.enable_codestar_notifications ? 1 : 0
+  version= "2012-10-17"
   statement {
     actions = ["sns:Publish"]
 
@@ -9,6 +10,20 @@ data "aws_iam_policy_document" "pipline_notifications" {
     }
 
     resources = [aws_sns_topic.pipline_notifications[count.index].arn]
+  }
+}
+
+data "aws_iam_policy_document" "codepipeline_role" {
+  version= "2012-10-17"
+  statement {
+    effect = "Allow"
+    actions = [
+      "sts:AssumeRole"
+    ]
+    principals {
+      type        = "Service"
+      identifiers = ["codepipeline.amazonaws.com"]
+    }
   }
 }
 

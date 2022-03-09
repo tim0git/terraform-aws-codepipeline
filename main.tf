@@ -84,12 +84,6 @@ resource "aws_sns_topic" "pipline_notifications" {
   tags = var.tags
 }
 
-resource "aws_sns_topic_policy" "pipline_notifications" {
-  count = var.enable_codestar_notifications ? 1 : 0
-  arn    = aws_sns_topic.pipline_notifications[count.index].arn
-  policy = data.aws_iam_policy_document.pipline_notifications[count.index].json
-}
-
 resource "aws_codestarnotifications_notification_rule" "pipline_notifications" {
   count = var.enable_codestar_notifications ? 1 : 0
   detail_type    = "BASIC"
@@ -104,23 +98,15 @@ resource "aws_codestarnotifications_notification_rule" "pipline_notifications" {
   tags = var.tags
 }
 
+resource "aws_sns_topic_policy" "pipline_notifications" {
+  count = var.enable_codestar_notifications ? 1 : 0
+  arn    = aws_sns_topic.pipline_notifications[count.index].arn
+  policy = data.aws_iam_policy_document.pipline_notifications[count.index].json
+}
+
 resource "aws_iam_role" "codepipeline_role" {
   name = "${var.project_name}-codepipline-role"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "codepipeline.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
+  assume_role_policy = data.aws_iam_policy_document.codepipeline_role.json
 }
 
 resource "aws_iam_role_policy" "codepipeline_policy" {
