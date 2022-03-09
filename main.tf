@@ -79,24 +79,26 @@ resource "aws_s3_bucket_acl" "codepipeline_bucket_acl" {
 }
 
 resource "aws_sns_topic" "pipline_notifications" {
+  count = var.enable_codestar_notifications ? 1 : 0
   name = "${var.project_name}-pipline-sns-topic"
   tags = var.tags
 }
 
 resource "aws_sns_topic_policy" "pipline_notifications" {
-  arn    = aws_sns_topic.pipline_notifications.arn
-  policy = data.aws_iam_policy_document.pipline_notifications.json
+  count = var.enable_codestar_notifications ? 1 : 0
+  arn    = aws_sns_topic.pipline_notifications[count.index].arn
+  policy = data.aws_iam_policy_document.pipline_notifications[count.index].json
 }
 
 resource "aws_codestarnotifications_notification_rule" "pipline_notifications" {
+  count = var.enable_codestar_notifications ? 1 : 0
   detail_type    = "BASIC"
   event_type_ids = ["codepipeline-pipeline-pipeline-execution-started", "codepipeline-pipeline-pipeline-execution-succeeded", "codepipeline-pipeline-pipeline-execution-failed", "codepipeline-pipeline-pipeline-execution-canceled"]
-
   name     = "${var.project_name}-pipline-notification-rule"
   resource = aws_codepipeline.codepipeline.arn
 
   target {
-    address = aws_sns_topic.pipline_notifications.arn
+    address = aws_sns_topic.pipline_notifications[count.index].arn
   }
 
   tags = var.tags
