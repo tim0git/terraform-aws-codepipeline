@@ -65,10 +65,12 @@ resource "aws_codepipeline" "codepipeline" {
       }
     }
   }
+  tags = var.tags
 }
 
 resource "aws_s3_bucket" "codepipeline_bucket" {
   bucket = lower("${var.project_name}-codepipeline-artifacts-store")
+  tags = var.tags
 }
 
 resource "aws_s3_bucket_acl" "codepipeline_bucket_acl" {
@@ -76,63 +78,39 @@ resource "aws_s3_bucket_acl" "codepipeline_bucket_acl" {
   acl    = "private"
 }
 
+resource "aws_sns_topic" "pipline_notifications" {
+  count = var.enable_codestar_notifications ? 1 : 0
+  name = "${var.project_name}-pipline-sns-topic"
+  tags = var.tags
+}
+
+resource "aws_codestarnotifications_notification_rule" "pipline_notifications" {
+  count = var.enable_codestar_notifications ? 1 : 0
+  detail_type    = "BASIC"
+  event_type_ids = ["codepipeline-pipeline-pipeline-execution-started", "codepipeline-pipeline-pipeline-execution-succeeded", "codepipeline-pipeline-pipeline-execution-failed", "codepipeline-pipeline-pipeline-execution-canceled"]
+  name     = "${var.project_name}-pipline-notification-rule"
+  resource = aws_codepipeline.codepipeline.arn
+
+  target {
+    address = aws_sns_topic.pipline_notifications[count.index].arn
+  }
+
+  tags = var.tags
+}
+
+resource "aws_sns_topic_policy" "pipline_notifications" {
+  count = var.enable_codestar_notifications ? 1 : 0
+  arn    = aws_sns_topic.pipline_notifications[count.index].arn
+  policy = data.aws_iam_policy_document.pipline_notifications[count.index].json
+}
+
 resource "aws_iam_role" "codepipeline_role" {
   name = "${var.project_name}-codepipline-role"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "codepipeline.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
+  assume_role_policy = data.aws_iam_policy_document.codepipeline_role.json
 }
 
 resource "aws_iam_role_policy" "codepipeline_policy" {
   name = "${var.project_name}-codepipeline_policy"
   role = aws_iam_role.codepipeline_role.id
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect":"Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:GetObjectVersion",
-        "s3:GetBucketVersioning",
-        "s3:PutObjectAcl",
-        "s3:PutObject"
-      ],
-      "Resource": [
-        "${aws_s3_bucket.codepipeline_bucket.arn}",
-        "${aws_s3_bucket.codepipeline_bucket.arn}/*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "codestar-connections:UseConnection"
-      ],
-      "Resource": "${module.codestar_connection.arn}"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "codebuild:BatchGetBuilds",
-        "codebuild:StartBuild"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+  policy = data.aws_iam_policy_document.codepipeline_policy.json
 }

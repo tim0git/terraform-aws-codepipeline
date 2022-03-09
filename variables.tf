@@ -28,6 +28,12 @@ variable "build_environment_variables" {
   default = []
 }
 
+variable enable_codestar_notifications {
+  description = "Enable codestar notifications and sns topic"
+  type        = bool
+  default = false
+}
+
 variable "tags" {
   description = "The tags to apply to the project"
   type        = map(string)
