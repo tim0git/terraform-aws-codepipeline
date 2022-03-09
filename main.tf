@@ -65,15 +65,41 @@ resource "aws_codepipeline" "codepipeline" {
       }
     }
   }
+  tags = var.tags
 }
 
 resource "aws_s3_bucket" "codepipeline_bucket" {
   bucket = lower("${var.project_name}-codepipeline-artifacts-store")
+  tags = var.tags
 }
 
 resource "aws_s3_bucket_acl" "codepipeline_bucket_acl" {
   bucket = aws_s3_bucket.codepipeline_bucket.id
   acl    = "private"
+}
+
+resource "aws_sns_topic" "pipline_notifications" {
+  name = "${var.project_name}-pipline-sns-topic"
+  tags = var.tags
+}
+
+resource "aws_sns_topic_policy" "pipline_notifications" {
+  arn    = aws_sns_topic.pipline_notifications.arn
+  policy = data.aws_iam_policy_document.pipline_notifications.json
+}
+
+resource "aws_codestarnotifications_notification_rule" "pipline_notifications" {
+  detail_type    = "BASIC"
+  event_type_ids = ["codepipeline-pipeline-pipeline-execution-started", "codepipeline-pipeline-pipeline-execution-succeeded", "codepipeline-pipeline-pipeline-execution-failed", "codepipeline-pipeline-pipeline-execution-canceled"]
+
+  name     = "${var.project_name}-pipline-notification-rule"
+  resource = aws_codepipeline.codepipeline.arn
+
+  target {
+    address = aws_sns_topic.pipline_notifications.arn
+  }
+
+  tags = var.tags
 }
 
 resource "aws_iam_role" "codepipeline_role" {
