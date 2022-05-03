@@ -98,3 +98,76 @@ artifacts:
     - "**/*"
   discard-paths: yes
 ```
+
+Example 3 Build [x86_64 (amd64)] container image and push to AWS ecr:
+``` hcl
+provider "aws" {
+    region = "us-east-1"
+}
+
+module "build_container_and_push_to_ecr" {
+  source                 = "../../"
+  version                = "1.0.0"
+  
+  project_name                = format("contact-me-greeting-%s", local.account_vars.tags.Environment)
+
+  enable_container_features   = true
+
+  provider_type               = "GitHub"
+
+  build_environment_variables = [{
+      name  = "AWS_DEFAULT_REGION"
+      value = "us-east-1"
+      type = "PLAINTEXT"
+    },
+    {
+      name  = "AWS_ACCOUNT_ID"
+      value = get_aws_account_id()
+      type = "PLAINTEXT"
+    },
+    {
+      name  = "IMAGE_REPO_NAME"
+      value = "example-ecr-repo-name"
+      type = "PLAINTEXT"
+    },
+    {
+      name  = "IMAGE_TAG"
+      value = "latest"
+      type = "PLAINTEXT"
+    }]
+
+    full_repository_id          = "github-user/example-project"
+  
+    branch_name                 = "main"
+  
+    enable_codestar_notifications = true
+
+  tags = merge(
+    local.account_vars.tags,
+    {
+      "Product"     = "contact-me"
+    }
+  )
+}
+```
+
+Example build spec yml for a docker file build
+``` yaml
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+```
