@@ -34,6 +34,12 @@ variable enable_codestar_notifications {
   default = false
 }
 
+variable "enable_container_features" {
+  description = "If true, build project will run in privileged mode, and ecr actions required for build and deploy will be added to build project iam role"
+  type        = bool
+  default     = false
+}
+
 variable "tags" {
   description = "The tags to apply to the project"
   type        = map(string)
