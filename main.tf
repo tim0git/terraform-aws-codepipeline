@@ -11,11 +11,13 @@ module "codestar_connection" {
 
 module "code_build" {
   source  = "tim0git/codebuild/aws"
-  version = "1.1.0"
+  version = "1.2.0"
 
   project_name = var.project_name
 
   environment_variables = var.build_environment_variables
+
+  enable_container_features = var.enable_container_features
 
   tags = var.tags
 }
