@@ -33,7 +33,7 @@ module "code_build_container" {
 
   project_name = "${var.project_name}-${local.container_architectures[count.index]}"
 
-  environment_variables = var.build_environment_variables
+  environment_variables = var.enable_multi_architecture_image_builds ? concat([for v in var.build_environment_variables : v if v.value != "latest"], [{name  = "IMAGE_TAG", value = "latest-${local.container_architectures[count.index]}", type = "PLAINTEXT"}]) : var.build_environment_variables
 
   enable_container_features = var.enable_container_features
 
