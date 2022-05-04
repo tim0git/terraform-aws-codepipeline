@@ -1,3 +1,8 @@
+locals {
+  enable_default_build_project = var.enable_container_features ?  [] : [true]
+  container_architectures = var.enable_multi_architecture_image_builds ? ["arm64", "amd64"] : var.enable_container_features ? ["amd64"] : []
+}
+
 module "codestar_connection" {
   source  = "tim0git/codestar-connection/aws"
   version = "1.1.1"
@@ -10,10 +15,23 @@ module "codestar_connection" {
 }
 
 module "code_build" {
+  count = var.enable_container_features ? 0 : 1
   source  = "tim0git/codebuild/aws"
   version = "1.2.0"
 
   project_name = var.project_name
+
+  environment_variables = var.build_environment_variables
+
+  tags = var.tags
+}
+
+module "code_build_container" {
+  count = var.enable_container_features ? length(local.container_architectures) : 0
+  source  = "tim0git/codebuild/aws"
+  version = "1.2.1"
+
+  project_name = "${var.project_name}-${local.container_architectures[count.index]}"
 
   environment_variables = var.build_environment_variables
 
@@ -53,19 +71,40 @@ resource "aws_codepipeline" "codepipeline" {
   stage {
     name = "Build"
 
-    action {
-      name             = "Build"
-      category         = "Build"
-      owner            = "AWS"
-      provider         = "CodeBuild"
-      input_artifacts  = ["source_output"]
-      output_artifacts = ["build_output"]
-      version          = "1"
+    dynamic "action" {
+      for_each = local.enable_default_build_project
+      content {
+        name             = "Build"
+        category         = "Build"
+        owner            = "AWS"
+        provider         = "CodeBuild"
+        input_artifacts  = ["source_output"]
+        output_artifacts = ["build_output"]
+        version          = "1"
 
-      configuration = {
-        ProjectName = "${var.project_name}-codebuild"
+        configuration = {
+          ProjectName = "${var.project_name}-codebuild"
+        }
       }
     }
+
+    dynamic "action" {
+      for_each = local.container_architectures
+      content {
+        name             = action.value
+        category         = "Build"
+        owner            = "AWS"
+        provider         = "CodeBuild"
+        input_artifacts  = ["source_output"]
+        output_artifacts = ["build_output"]
+        version          = "1"
+
+        configuration = {
+          ProjectName = "${var.project_name}-${action.value}-codebuild"
+        }
+      }
+    }
+
   }
   tags = var.tags
 }
