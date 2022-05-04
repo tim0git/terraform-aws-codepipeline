@@ -17,7 +17,7 @@ module "codestar_connection" {
 module "code_build" {
   count = var.enable_container_features ? 0 : 1
   source  = "tim0git/codebuild/aws"
-  version = "1.2.1"
+  version = "1.3.0"
 
   project_name = var.project_name
 
@@ -29,13 +29,15 @@ module "code_build" {
 module "code_build_container" {
   count = var.enable_container_features ? length(local.container_architectures) : 0
   source  = "tim0git/codebuild/aws"
-  version = "1.2.1"
+  version = "1.3.0"
 
   project_name = "${var.project_name}-${local.container_architectures[count.index]}"
 
   environment_variables = var.build_environment_variables
 
   enable_container_features = var.enable_container_features
+
+  container_architecture  = local.container_architectures[count.index]
 
   tags = var.tags
 }
@@ -96,7 +98,7 @@ resource "aws_codepipeline" "codepipeline" {
         owner            = "AWS"
         provider         = "CodeBuild"
         input_artifacts  = ["source_output"]
-        output_artifacts = ["build_output"]
+        output_artifacts = ["build_output-${action.value}"]
         version          = "1"
 
         configuration = {
