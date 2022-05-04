@@ -40,6 +40,12 @@ variable "enable_container_features" {
   default     = false
 }
 
+variable "enable_multi_architecture_image_builds" {
+  description = "If true, two build projects will be created, one for amd64 and one for arm64. In addition a manifest stage will be created to create publish the manifest to ecr"
+  type        = bool
+  default     = false
+}
+
 variable "tags" {
   description = "The tags to apply to the project"
   type        = map(string)
