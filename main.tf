@@ -159,8 +159,11 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "codepipeline_buck
   bucket = aws_s3_bucket.codepipeline_bucket.bucket
 
   rule {
-    bucket_key_enabled = true
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "AES256"
+    }
   }
+
 }
 
 resource "aws_s3_bucket_versioning" "codepipeline_bucket_versioning" {
@@ -173,6 +176,15 @@ resource "aws_s3_bucket_versioning" "codepipeline_bucket_versioning" {
 resource "aws_s3_bucket_acl" "codepipeline_bucket_acl" {
   bucket = aws_s3_bucket.codepipeline_bucket.id
   acl    = "private"
+}
+
+resource "aws_s3_bucket_public_access_block" "codepipeline_bucket_public_access_block" {
+  bucket = aws_s3_bucket.codepipeline_bucket.id
+
+  block_public_acls   = true
+  block_public_policy = true
+  restrict_public_buckets = true
+  ignore_public_acls = true
 }
 
 resource "aws_sns_topic" "pipline_notifications" {
