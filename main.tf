@@ -162,6 +162,7 @@ resource "aws_kms_key" "codepipeline_bucket_key" {
   enable_key_rotation = true
 }
 
+#tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "codepipeline_bucket" {
   bucket = lower("${var.project_name}-codepipeline-artifacts-store")
   tags = var.tags
@@ -197,6 +198,14 @@ resource "aws_s3_bucket_public_access_block" "codepipeline_bucket_public_access_
   block_public_policy = true
   restrict_public_buckets = true
   ignore_public_acls = true
+}
+
+resource "aws_s3_bucket_logging" "example" {
+  count = var.pipeline_artifact_access_log_storage_bucket == "" ? 0 : 1
+  bucket = aws_s3_bucket.codepipeline_bucket.id
+
+  target_bucket = var.pipeline_artifact_access_log_storage_bucket
+  target_prefix = "${aws_s3_bucket.codepipeline_bucket.bucket}-access-log/"
 }
 
 resource "aws_sns_topic" "pipline_notifications" {

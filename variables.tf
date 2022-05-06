@@ -46,6 +46,12 @@ variable "enable_multi_architecture_image_builds" {
   default     = false
 }
 
+variable "pipeline_artifact_access_log_storage_bucket" {
+  description = "The log bucket id where you want to store the pipeline artifact access logs, if no id is passed, logging will be disabled"
+  type        = string
+  default = ""
+}
+
 variable "tags" {
   description = "The tags to apply to the project"
   type        = map(string)
