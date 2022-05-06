@@ -43,6 +43,8 @@ module "build_container_and_push_to_ecr" {
 
   enable_codestar_notifications = true
 
+  pipeline_artifact_access_log_storage_bucket = "example-s3-bucket-name"
+
   tags = {
     Name = "example-project"
   }
