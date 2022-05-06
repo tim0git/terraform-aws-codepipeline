@@ -2,6 +2,12 @@ locals {
   enable_default_build_project = var.enable_container_features ?  [] : [true]
   container_architectures = var.enable_multi_architecture_image_builds ? ["arm64", "amd64"] : var.enable_container_features ? ["amd64"] : []
   enable_manifest_creation = var.enable_multi_architecture_image_builds ? [true] : []
+  code_build_project_arns = [
+    try(module.code_build[0].aws_codebuild_project_arn, null),
+    try(module.code_build_container[0].aws_codebuild_project_arn, null),
+    try(module.code_build_container[1].aws_codebuild_project_arn, null),
+    try(module.code_build_manifest[0].aws_codebuild_project_arn, null),
+  ]
 }
 
 module "codestar_connection" {
