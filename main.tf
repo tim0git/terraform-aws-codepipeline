@@ -1,6 +1,7 @@
 locals {
   enable_default_build_project = var.enable_container_features ?  [] : [true]
   container_architectures = var.enable_multi_architecture_image_builds ? ["arm64", "amd64"] : var.enable_container_features ? ["amd64"] : []
+  enable_manifest_creation = var.enable_multi_architecture_image_builds ? [true] : []
 }
 
 module "codestar_connection" {
@@ -17,7 +18,7 @@ module "codestar_connection" {
 module "code_build" {
   count = var.enable_container_features ? 0 : 1
   source  = "tim0git/codebuild/aws"
-  version = "1.3.0"
+  version = "1.4.0"
 
   project_name = var.project_name
 
@@ -29,7 +30,7 @@ module "code_build" {
 module "code_build_container" {
   count = var.enable_container_features ? length(local.container_architectures) : 0
   source  = "tim0git/codebuild/aws"
-  version = "1.3.0"
+  version = "1.4.0"
 
   project_name = "${var.project_name}-${local.container_architectures[count.index]}"
 
@@ -38,6 +39,22 @@ module "code_build_container" {
   enable_container_features = var.enable_container_features
 
   container_architecture  = local.container_architectures[count.index]
+
+  tags = var.tags
+}
+
+module "code_build_manifest" {
+  count = var.enable_multi_architecture_image_builds ? 1 : 0
+  source  = "tim0git/codebuild/aws"
+  version = "1.4.0"
+
+  project_name = "${var.project_name}-manifest"
+
+  enable_container_features = var.enable_container_features
+
+  environment_variables = var.build_environment_variables
+
+  buildspec = "buildspec-manifest.yml"
 
   tags = var.tags
 }
@@ -108,6 +125,28 @@ resource "aws_codepipeline" "codepipeline" {
     }
 
   }
+
+  dynamic "stage" {
+    for_each = local.enable_manifest_creation
+    content {
+      name = "CreateManifest"
+
+      action {
+        name             = "PublishManifest"
+        category         = "Build"
+        owner            = "AWS"
+        provider         = "CodeBuild"
+        input_artifacts  = ["source_output"]
+        output_artifacts = ["build_output-manifest"]
+        version          = "1"
+
+        configuration = {
+          ProjectName = "${var.project_name}-manifest-codebuild"
+        }
+      }
+    }
+  }
+
   tags = var.tags
 }
 
