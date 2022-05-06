@@ -155,6 +155,21 @@ resource "aws_s3_bucket" "codepipeline_bucket" {
   tags = var.tags
 }
 
+resource "aws_s3_bucket_server_side_encryption_configuration" "codepipeline_bucket_encryption_configuration" {
+  bucket = aws_s3_bucket.codepipeline_bucket.bucket
+
+  rule {
+    bucket_key_enabled = true
+  }
+}
+
+resource "aws_s3_bucket_versioning" "codepipeline_bucket_versioning" {
+  bucket = aws_s3_bucket.codepipeline_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
 resource "aws_s3_bucket_acl" "codepipeline_bucket_acl" {
   bucket = aws_s3_bucket.codepipeline_bucket.id
   acl    = "private"
