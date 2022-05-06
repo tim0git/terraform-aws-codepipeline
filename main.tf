@@ -150,6 +150,12 @@ resource "aws_codepipeline" "codepipeline" {
   tags = var.tags
 }
 
+resource "aws_kms_key" "codepipeline_bucket_key" {
+  description             = "This key is used to encrypt ${var.project_name} code pipline artifacts"
+  deletion_window_in_days = 10
+  enable_key_rotation = true
+}
+
 resource "aws_s3_bucket" "codepipeline_bucket" {
   bucket = lower("${var.project_name}-codepipeline-artifacts-store")
   tags = var.tags
@@ -160,10 +166,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "codepipeline_buck
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm     = "AES256"
+      kms_master_key_id = aws_kms_key.codepipeline_bucket_key.arn
+      sse_algorithm     = "aws:kms"
     }
   }
-
 }
 
 resource "aws_s3_bucket_versioning" "codepipeline_bucket_versioning" {
