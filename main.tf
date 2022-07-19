@@ -239,7 +239,7 @@ resource "aws_sns_topic_policy" "pipline_notifications" {
 }
 
 resource "aws_iam_role" "codepipeline_role" {
-  name               = "${var.project_name}-codepipline-role"
+  name               = "${var.project_name}-codepipline-service-role"
   assume_role_policy = data.aws_iam_policy_document.codepipeline_role.json
 }
 
