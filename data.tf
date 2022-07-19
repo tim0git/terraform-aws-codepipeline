@@ -1,6 +1,6 @@
 data "aws_iam_policy_document" "pipline_notifications" {
-  count = var.enable_codestar_notifications ? 1 : 0
-  version= "2012-10-17"
+  count   = var.enable_codestar_notifications ? 1 : 0
+  version = "2012-10-17"
   statement {
     actions = ["sns:Publish"]
 
@@ -14,7 +14,7 @@ data "aws_iam_policy_document" "pipline_notifications" {
 }
 
 data "aws_iam_policy_document" "codepipeline_role" {
-  version= "2012-10-17"
+  version = "2012-10-17"
   statement {
     effect = "Allow"
     actions = [
@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "codepipeline_role" {
 }
 
 data "aws_iam_policy_document" "codepipeline_policy" {
-  version= "2012-10-17"
+  version = "2012-10-17"
   statement {
     effect = "Allow"
     actions = [

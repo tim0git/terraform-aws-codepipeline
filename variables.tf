@@ -1,37 +1,37 @@
 variable "project_name" {
   description = "The name of the project"
   type        = string
-  default =  "codepipline"
+  default     = "codepipline"
 }
 
 variable "provider_type" {
   description = "The provider type"
   type        = string
-  default = "GitHub"
+  default     = "GitHub"
 }
 
 variable "full_repository_id" {
   description = "The full repository id"
   type        = string
-  default = ""
+  default     = ""
 }
 
 variable "branch_name" {
   description = "The branch name"
   type        = string
-  default = "develop"
+  default     = "develop"
 }
 
 variable "build_environment_variables" {
   description = "The build environment variables"
   type        = any
-  default = []
+  default     = []
 }
 
-variable enable_codestar_notifications {
+variable "enable_codestar_notifications" {
   description = "Enable codestar notifications and sns topic"
   type        = bool
-  default = false
+  default     = false
 }
 
 variable "enable_container_features" {
@@ -49,7 +49,14 @@ variable "enable_multi_architecture_image_builds" {
 variable "pipeline_artifact_access_log_storage_bucket" {
   description = "The log bucket id where you want to store the pipeline artifact access logs, if no id is passed, logging will be disabled"
   type        = string
-  default = ""
+  default     = ""
+}
+
+variable "codedbuild_service_role_kms_key_alias" {
+  description = "The kms key alias for codedbuild service role"
+  type        = string
+  default     = null
+  nullable    = true
 }
 
 variable "tags" {
