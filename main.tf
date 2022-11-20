@@ -24,7 +24,7 @@ module "codestar_connection" {
 module "code_build" {
   count   = var.enable_container_features ? 0 : 1
   source  = "tim0git/codebuild/aws"
-  version = "1.5.0"
+  version = "1.6.0"
 
   project_name = var.project_name
 
