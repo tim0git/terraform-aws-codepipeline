@@ -1,4 +1,4 @@
-data "aws_iam_policy_document" "pipline_notifications" {
+data "aws_iam_policy_document" "pipeline_notifications" {
   count   = var.enable_codestar_notifications ? 1 : 0
   version = "2012-10-17"
   statement {
@@ -9,7 +9,7 @@ data "aws_iam_policy_document" "pipline_notifications" {
       identifiers = ["codestar-notifications.amazonaws.com"]
     }
 
-    resources = [aws_sns_topic.pipline_notifications[count.index].arn]
+    resources = [aws_sns_topic.pipeline_notifications[count.index].arn]
   }
 }
 

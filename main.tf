@@ -250,7 +250,7 @@ resource "aws_sns_topic" "pipeline_notifications" {
   tags  = var.tags
 }
 
-resource "aws_codestarnotifications_notification_rule" "pipline_notifications" {
+resource "aws_codestarnotifications_notification_rule" "pipeline_notifications" {
   count          = var.enable_codestar_notifications ? 1 : 0
   detail_type    = "BASIC"
   event_type_ids = ["codepipeline-pipeline-pipeline-execution-started", "codepipeline-pipeline-pipeline-execution-succeeded", "codepipeline-pipeline-pipeline-execution-failed", "codepipeline-pipeline-pipeline-execution-canceled"]
@@ -258,16 +258,16 @@ resource "aws_codestarnotifications_notification_rule" "pipline_notifications" {
   resource       = aws_codepipeline.codepipeline.arn
 
   target {
-    address = aws_sns_topic.pipline_notifications[count.index].arn
+    address = aws_sns_topic.pipeline_notifications[count.index].arn
   }
 
   tags = var.tags
 }
 
-resource "aws_sns_topic_policy" "pipline_notifications" {
+resource "aws_sns_topic_policy" "pipeline_notifications" {
   count  = var.enable_codestar_notifications ? 1 : 0
-  arn    = aws_sns_topic.pipline_notifications[count.index].arn
-  policy = data.aws_iam_policy_document.pipline_notifications[count.index].json
+  arn    = aws_sns_topic.pipeline_notifications[count.index].arn
+  policy = data.aws_iam_policy_document.pipeline_notifications[count.index].json
 }
 
 resource "aws_iam_role" "codepipeline_role" {
