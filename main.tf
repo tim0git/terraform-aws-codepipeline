@@ -217,7 +217,34 @@ resource "aws_s3_bucket_logging" "example" {
   target_prefix = "${aws_s3_bucket.codepipeline_bucket.bucket}-access-log/"
 }
 
-resource "aws_sns_topic" "pipline_notifications" {
+resource "aws_s3_bucket_lifecycle_configuration" "codepipeline_bucket_acl" {
+  bucket = aws_s3_bucket.codepipeline_bucket.id
+
+  rule {
+    id     = "codepipeline-artifacts-expiration"
+    status = "Enabled"
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    expiration {
+      days = 90
+    }
+
+    noncurrent_version_transition {
+      noncurrent_days = 30
+      storage_class   = "STANDARD_IA"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
+  }
+}
+
+resource "aws_sns_topic" "pipeline_notifications" {
   count = var.enable_codestar_notifications ? 1 : 0
   name  = "${var.project_name}-pipline-sns-topic"
   tags  = var.tags
