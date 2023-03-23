@@ -166,6 +166,11 @@ resource "aws_kms_key" "codepipeline_bucket_key" {
   enable_key_rotation     = true
 }
 
+resource "aws_kms_alias" "codepipeline_bucket_key" {
+  target_key_id = aws_kms_key.codepipeline_bucket_key.key_id
+  name          = "alias/${var.project_name}-codepipeline-artifacts-store"
+}
+
 #tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "codepipeline_bucket" {
   bucket = lower("${var.project_name}-codepipeline-artifacts-store")
